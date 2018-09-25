@@ -1,0 +1,113 @@
+\section{Design Overview}
+In this section, 
+We illustrate how the next three sections organized. 
+Bridge the gap between OpenCL implementation and FPGAs. 
+
+\section{OpenCL on FPGA: Issue and Potential}
+\label{sec_patterns}
+%The conventional OpenCL is originally designed for GPUs which have super powerful memory subsystem, 
+When migrating conventional OpenCL programs, which is originally designed for GPUs, to FPGAs, we identify three OpenCL patterns which can be significantly improved: atomic operation, multi-pass scheme and communication approach. In the following, we analyze the issue of each aspect on FPGAs, followed by the potential optimization direction on FPGAs. 
+
+\subsection{Atomic Operation}
+For NDRange OpenCL, the atomic operation is required to guarantee the consistence of OpenCL kernel, when multiple work items try to update the same memory location, e.g., atomic\_add~\cite{opencl_spec, atomic_fpga16}. 
+
+{\bf Issues on FPGAs. }We have identified three issues regarding atomic operation on FPGAs. First, the mechanism of atomic operation is relatively complex, so massive FPGA resources are required to implement it, leading to a noticeable resource overhead on FPGAs. %and then this issue on FPGAs is much worse on ASICs. 
+Second, with atomic operation in our OpenCL kernel, all the memory transactions, including both atomic and normal memory transactions, have to enter the atomic module to guarantee the correct execution, as atomic and normal memory transactions from OpenCL kernel can reference the same memory location \jgl{Every access goes through the atomic path even though it is clear that there are no atomic accesses to certain arrays? This is weird, but reminds me that something similar happened in old AMD GPUs}. Therefore, each memory transaction has a longer memory access latency, leading to potentially lower memory bandwidth.  
+Third, to make things worse, the frequency of FPGA design is much lower than that on ASICs. We conclude that the atomic operation is not able to fit well on FPGAs.  % has severe performance issue
+
+{\bf Potential on FPGAs. }In order to achieve good performance of OpenCL kernel on FPGAs, one potential direction is to get rid of atomic operations. Fortunately, Intel OpenCL SDK~\cite{altera_optimization} supports a new execution model: single work-item kernel. Essentially, it contains only one work item during the kernel execution, so there is no conflict from multiple work items, indicating that no atomic operation is required. In other words, it exploits the pipelined parallelism, not the thread-level parallelism which is widely exploited by GPUs.
+
+\subsection{Multi-pass Scheme}
+Typically, the multi-pass scheme is widely adopted by OpenCL kernel, since it enables a massive amount of cores in CPUs/GPUs to accelerate parallel algorithm, e.g., database operators~\cite{query_gpu_tods09, omnidb_vldb13, query_openCL_fpga_fpl16}. Further, it improves the cache locality on GPUs, e.g., gather/scatter~\cite{gather_scatter_sc07}, so as to improve the overall performance at the cost of more memory traffic. We observe that the inevitable requirement for the adoption of multi-pass scheme is powerful memory subsystem, as the multi-pass scheme always requires more memory traffic to realize the algorithm. It works pretty well on GPUs, since the memory bandwidth of GPUs is almost an order of magnitude larger than the same-generation CPU or FPGA. For example, the memory bandwidth of Nvidia Tesla P100 GPU is able to reach 732GB/s, while Intel Skylake i9-7980XE CPU has the memory bandwidth of 85GB/s and Xilinx UltraScale+ FPGA board has 48GB/s. 
+%Therefore, the multi-pass scheme, which heavily relies on high memory bandwidth, can still achieve better performance on GPUs than on CPUs, even though it requires multiple times more memory traffic than the original sequential counterpart which may run on a single CPU core. 
+%requires multiple passes~\cite{query_gpu_tods09} to finish the computation task, e.g., database scan. In other words,
+
+{\bf Issues on FPGAs. }We can predict that the multi-pass scheme, whose success heavily relies on high memory bandwidth, would be less popular on FPGAs than on GPUs, since the memory bandwidth of FPGAs is relatively low, e.g., 18GB/s on our tested FPGA board. Therefore, the multi-pass scheme of OpenCL kernel can suffer from its severe performance issue, especially for the memory-bound OpenCL kernel on FPGAs, even though the FPGA can provide massive thread-level parallelism. 
+
+{\bf Potential on FPGAs. } Since OpenCL SDK for OpenCL supports the new single work-item kernel. Thus, the application which is originally optimized with multi-pass scheme is allowed to be implemented in a single-pass approach, without compromising any achievable pipeline parallelism. Therefore, the memory traffic is reduced to a minimum level just as the single-threaded implementation running on a single core. 
+%We can use single-work item execution model: multi-pass approach to approach. %It means that the memory traffic 
+
+Todo: add one concrete example to show the difference, like database filter.
+
+\subsection{Kernel-to-Kernel Communication}
+On GPUs, the typical communication approach between producer/consumer kernels is done via global memory. In particular, after the producer kernel writes the data to the global memory, the consumer kernel reads the data from global memory. It is a common communication approach to exchange information among Stream Processors (SPs) in GPUs, as there is no physical communication path between any two SPs. This communication approach works well on GPUs since GPUs can execute each kernel relatively fast due to its massive thread-level parallelism and powerful memory subsystem. Suppose each OpenCL kernel is fully optimized, the overall performance of producer/consumer kernels is maximized. %Even though more memory traffic is required to 
+This communication approaches widely used in accelerating various applications, e.g., database~\cite{query_gpu_tods09, omnidb_vldb13}. 
+
+{\bf Issue on FPGAs. }The memory bandwidth, e.g., 18GB/s on our tested FPGA board, is relatively low on FPGAs, the communication via external memory can be extremely expensive. 
+
+{\bf Potential on FPGAs. }We can use OpenCL channel via which the producer kernel can directly send data to the consumer kernel at the register level (i.e., FIFO), without any memory traffic involved between the producer and consumer kernels. Besides, both kernels, each of which has the dedicated hardware resources to implement, execute concurrently, so not only intra-kernel parallelism (i.e., pipelined) is exploited, but also inter-kernel parallelism (i.e., multiple kernels).  
+
+
+
+%\subsection{Dependency}
+%For compute-bound applications, which can be benefited from exploring more parallelism among work items. 
+
+
+\section{OpenCL Execution Models on FPGA}
+\label{sec_execution_models}
+%Since the architecture of FPGAs is significantly different from that of GPUs, we need to revisit the OpenCL execution models on FPGAs. with the proposed aspects in mind, 
+In this section, we explore the design space of execution models of OpenCL kernel on FPGAs. In the following, we generally analyze the pros and cons of each execution model. %The detailed 
+%{NDRange vs. single work-item}
+%{single-kernel vs. multiple kernels connected by OpenCL channel }
+
+\begin{table} %[!hbp]
+	\centering
+	%\begin{spacing}{0.3}
+		\begin{scriptsize}
+	\begin{tabular}{|c|c|c|c|c|}
+		\hline
+		  & NDRange & SWI & NDRange+Channel & SWI+Channel \\
+		\hline
+Programmability & Moderate & High & Low & Low \\
+		\hline
+Computing Parallelism & Moderate & Low & High & High \\
+		\hline
+Memory Traffic & High & Low & Moderate & Low \\
+		\hline		
+	\end{tabular}
+		\end{scriptsize}
+	%\end{spacing}
+		\caption{General comparison of execution models}
+	%\vspace{-1ex}
+	\label{t_comparison}
+	\vspace{-3ex}
+\end{table}
+
+
+
+\subsection{NDRange}
+It is the conventional OpenCL programming model, which is widely used in GPU programming. It explore massive theread-level parallelism. 
+
+{\bf Pros. }The optimization methods which are used by GPUs can also apply to FPGAs, like SM, memory coalescing. Plenty of related work is available. 
+
+{\bf Cons. }It may not achieve good performance on FPGAs, whose architecture is significantly different from GPUs. Suppose it works well on FPGAs, it also works well on GPUs.
+
+{\bf Scope. }Without any above three issues. 
+
+
+\subsection{Single Work-item} Only one work-item is alive during the execution. 
+
+{\bf Pros. }Easy to write the program. 
+
+{\bf Cons. }
+
+
+{\bf Scope. }With Atomic or multi-pass, or both. But it works only for a simple OpenCL kernel, since it can only explore limited parallelism.
+
+
+\subsection{NDRange + OpenCL Channel}
+
+{\bf Pros. }More information
+
+{\bf Cons. }Additional information, e.g., work item id, is communicated to guarantee the correctness. Otherwise, the producer/consumer execution pattern, enabled by OpenCL channel, may run out-of-order.
+
+{\bf Scope. }For compute-bound application, needs more data parallel.
+
+
+\subsection{Single Work-item + OpenCL Channel. }
+
+{\bf Pros. }
+
+{\bf Cons. }
+
+

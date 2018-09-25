@@ -1,0 +1,85 @@
+\documentclass[sigconf]{acmart}
+
+\usepackage{booktabs} % For formal tables
+
+\usepackage{graphicx,epsfig,color,endnotes,alltt}
+\usepackage{caption}
+\DeclareCaptionType{copyrightbox}
+%\usepackage{subcaption}
+\usepackage{comment}
+\usepackage{keyval}
+\usepackage{subfig}
+\usepackage{url}
+\usepackage{balance}
+\usepackage [ruled,linesnumbered] {algorithm2e}  \usepackage[noend]{algorithmic}
+\usepackage{fancyvrb}
+\usepackage[noindent, nolineno]{lgrind}
+\usepackage{listings}
+\usepackage{epstopdf}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage{slashbox}
+
+
+\usepackage[titletoc,title]{appendix}
+
+
+\setcopyright{rightsretained}
+
+% Commands added by Juan 
+\definecolor{dgreen}{rgb}{0.00, 0.75, 0.00}
+\newcommand{\jgl}[1]{[{\color{dgreen}JGL: #1}]}
+\newcommand{\juan}[1]{{\color{dgreen}#1}}
+
+% DOI
+\acmDOI{10.475/123_4}
+
+% ISBN
+\acmISBN{123-4567-24-567/08/06}
+
+%Conference
+\acmConference[DAC'19]{ACM Woodstock conference}{June 2019}{Las Vegas, NV, USA} 
+\acmYear{2019}
+\copyrightyear{2019}
+
+\acmPrice{15.00}
+
+\graphicspath{{./figure/}}
+
+
+\begin{document}
+	
+\title{Understanding and Optimizing OpenCL Kernels on FPGAs}
+
+
+\input{abstract.tex}
+
+\maketitle
+
+
+\input{Introduction.tex}
+\input{Preliminaries.tex}
+\input{Design.tex}
+\input{Experimental.tex}
+\input{Conclusion.tex}
+
+
+\section{Acknowledgement}
+\vspace{-1ex}
+
+We thank Intel which has donated Terasic\textquoteright s DE5A-Net Arria 10 FPGA board for our research.
+%We thank Altera and Intel for hardware donations. This work is supported by a MoE AcRF Tier 1 grant (MOE 2014-T1-001-145), an NUS startup grant and a HKUST startup grant (R9336).
+
+%This work is in part supported by MoE AcRF Tier 2 grants (MOE2012-T2-1-126 and MOE2012-T2-2-067) in Singapore.
+%\vspace{-2ex}
+
+\bibliographystyle{abbrv} %ACM-Reference-Format}
+%\linespread{.2}
+%	\scriptsize
+\bibliography{myref}
+
+
+
+\end{document}

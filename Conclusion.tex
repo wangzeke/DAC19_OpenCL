@@ -1,0 +1,21 @@
+\section{Conclusion}
+Hello Conclusion. 
+
+Take-away messages:
+
+1, Direct adoption of OpenCL does not work well on FPGA. It does not take advantage of FPGA properties. 
+
+2, The necessary background of FPGA is required to guarantee the good performance of OpenCL kernels on FPGAs. 
+
+3, for the beginner, OpenCL is much easier than RTL . 
+
+Two observations are orthogonal. 
+
+1, Multi-pass and atomic operations can benefit from single-work item.
+
+2, Multiple kernels (producer-consumer) can benefit from channel. 
+
+3, NDRange can explore more pipelined parallelism than single-work-item. (Using one example (MM) to show).
+
+
+

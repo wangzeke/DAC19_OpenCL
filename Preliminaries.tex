@@ -1,0 +1,47 @@
+\section{Background}
+%@Jiantong, you can fill this section, following my paper's style. 
+
+\subsection{Traditional OpenCL Programming Model}
+
+\subsubsection{OpenCL Concepts} 
+%work item, work group, et at. 
+
+OpenCL is an open parallel programming language for heterogeneous computing environments. It aims for a host-accelerator model of program execution, where a host processor runs control-intensive task and offloads computation-intensive code (i.e., \emph{kernel}) onto an external accelerator.
+
+Recently, Altera provides the OpenCL SDK to abstract the hardware complexities from the traditional FPGA design. The Altera's SDK can translate the high-level OpenCL description to low-level hardware implementation by creating the circuits for each operation of the kernel and interconnect them together to achieve the whole data path.
+
+From the perspective of OpenCL, the FPGA memory hierarchy  contains three layers. First, the \emph{global memory} with high latency and low bandwidth which often refers to the DDRs of the FPGA board. Second, the \emph{local memory} utilizes on-chip low-latency and high-bandwidth BRAMs, and it has four banks in general. Third, the \emph{private memory}, storing the variables or small arrays for each work-item, is constructed using completely-parallel registers. Compared to CPU/GPU, the private memory is rather plentiful in FPGA.
+
+Different from viewing FPGAs as pure hardware resources like LUTs, DSP blocks and memory blocks, the OpenCL SDK regards the FPGA as a large-scale parallel architecture. Most commonly, OpenCL partitions a problem into equally loaded chunks of work, i.e., \emph{work-item}, which represent the basic unit of execution. A set of work-items are organized into a \emph{work-group} and multiple work-groups are combined to form a three-dimensional index space called \emph{NDRange}. \emph{NDRange kernel} is the default OpenCL kernel model which achieves the pipelined parallelism across multiple work-items. We can configure multiple kernel pipelines, i.e., Compute Units (CUs) for the NDRange kernel. Then each CU executes the OpenCL program in a pipelined fashion. Although NDRange execution pattern is the most common pattern of using accelerators with OpenCL, it is not mandatory. Actually, in many cases, single work-item kernels are employed as a preferred execution pattern in Altera's OpenCL implementation as explained below.
+
+
+\subsubsection{Main Optimization Methods}
+We introduce three main optimization methods, which are widely adopted by normal and go-beyond OpenCL kernels. We refer the reader to the related work~\cite{fpga_opencl_model_hpca16} for more optimization methods on FPGAs. 
+
+{\bf Shared Memory. } Each CU has its own local memory, which is shared by all the work-items assigned to the CU, while all CUs share a global memory. The on-chip local memory is low-latency and high-throughput compared to global memory. Thus, the local memory can be employed to reduce the number of global memory accesses.
+
+{\bf Loop Unrolling. } If there are a large number of loop iterations in the kernel pipeline, the loop iterations could potentially be the critical path of the kernel pipeline. Unrolling the loop can increase the pipeline throughput at the expense of more hardware resources consumption. And it may have a side-product benefit on FPGAs. The load/store operations can coalesce so that the number of global memory accesses is reduced.
+
+{\bf Multiple Compute Units. } If the hardware resource is sufficient on the FPGA, the kernel pipeline can be replicated to generate multiple CUs for each kernel and the inner hardware scheduler automatically dispatches work-groups to available CUs. Kernel pipeline replication can achieve higher throughput at the expense of increasing hardware resource utilization, which often leads to a lower FPGA operating frequency than that of one CU. It means that two CUs cannot always double the performance. Another issue is that the global memory load/store operations from multiple CUs compete for the global memory bandwidth and the total number of global memory operations remains unchanged.
+
+
+\subsection{Go-beyond OpenCL on FPGAs}
+
+\subsubsection{Single Work-Item Kernel} 
+
+In addition to the standard NDRange kernel model, Altera OpenCL SDK also provides a \emph{single work-item kernel}  model. It follows a sequential model like C programming, thus executes the kernel on only one CU that contains only one work-item. In the single work-item execution pattern, the parallelism is implicit, and the OpenCL SDK will instead determine pipelined parallelism at the compilation time based on the dependency. The single work-item execution pattern more closely matches the traditional deep-pipeline approach of programming FPGAs.
+
+
+\subsubsection{OpenCL Channel}
+
+Altera OpenCL SDK provides the \emph{OpenCL channel} feature, which can be used to pass data between two OpenCL kernels (either NDRange or single work-item) and synchronize the kernels with high efficiency and low latency. In the conventional OpenCL implementation, the communication between two kernels is performed via global memory. However, global memory bandwidth could potentially be a performance bottleneck for the kernels. In contrast, the implementation of channels decouples kernel execution from the host processor, allowing the kernels to communicate directly with each other via on-chip FIFO buffers.
+
+The OpenCL channel has two types: blocking channel and nonblocking channel. The write/read operation to blocking channel will not return if the operation does not successfully commit, while the write/read operation to nonblocking channel will return even when the operation does not successfully commit.
+
+%The second paragraph has not been modified.
+
+
+
+
+
+

@@ -1,0 +1,77 @@
+\section{Introduction}
+
+The parallel programming languages, e.g., OpenCL, are based on BSP (Bulk Synchronous Parallel) model and are widely adopted by GPUs, which features a massive number of cores for the computation task. 
+Due to the fact that FPGA is embarrassingly parallel, it is a natural attempt to use the existing parallel programming languages to program FPGA \jgl{Also because of increased programmability and lower learning curve with respect to RTL}. For instance, Intel has launched one OpenCL SDK to program FPGAs~\cite{altera_optimization}. Plenty of research work~\cite{flexcl_tc18, opencl_compiler_ERSA12, fpga_opencl_model_hpca16} are aim at optimizing the \emph{conventional OpenCL} kernels on FPGAs, where the conventional OpenCL kernel is the NDRange kernel which employs a multi-thread approach to explore the thread-level parallelism to accelerate the computing task. 
+%The optimization process is vital to achieve good performance on FPGAs, since the performance difference between proper and improper optimizations can be significant. For example, [X] shows that the optimal combination of optimization methods can provide two orders of magnitude better performance than the baseline without optimization. 
+
+\jgl{I think an interesting motivation for this work can be achieving performance portability across different types of accelerators (i.e., GPU to FPGA). In this regard, a paper to cite is \cite{chang2017collaborative}.}
+
+\jgl{Somewhere in the introduction, it is necessary to talk about the characteristics of the GPU OpenCL codes that are going to be ported to FPGA in this work. In Chai \cite{gomez2017chai}, there are benchmarks that use inter-kernel communication (e.g., CEDD) and multi-pass schemes (e.g., BFS, SSSP). These two are typical techniques in GPU programming. In Chai, there is also extensive use of atomic operations. In the past, GPU programmers avoided atomic operations \cite{nasre2013} because they had high overhead. However, in recent GPU generations (e.g., NVIDIA Kepler, Maxwell, Pascal) the hardware has greatly improved. They provide improved programmability that GPU programmers nowadays leverage.}
+
+Despite the preliminary success from directly adopting conventional OpenCL programs on FPGAs, we still identify a significant gap from achieving the near-to-optimal performance on FPGAs due to the factor that the conventional OpenCL kernel is not able to fully utilize two distinguished architectural features of FPGAs \jgl{Any related work that has compared the performance of optimized RTL with OpenCL?}. We refer this kind of direction as a go-beyond OpenCL on FPGAs. %We discuss the features in two dimensions. %the architecture of FPGAs is significantly different from that of GPUs
+
+\vspace{0.3em}
+\noindent
+{\bf F1: Single Work-Item (SWI) Kernel. } Intel OpenCL SDK provides a new programming model for FPGAs: \emph{single work-item kernel}. It relies on the off-line compiler to explore the pipelined parallelism at the compilation time. Therefore, it only contains only one work item to do the computation, indicating significantly different from data-parallel programming model of conventional OpenCL kernel. %The single work-item execution pattern more closely matches the traditional deep-pipeline approach of programming FPGAs.
+%First, the external memory bandwidth on FPGAs is critically less than that on GPUs. This means that memory bandwidth on FPGAs can much easier become the performance bottleneck.  
+
+\vspace{0.3em}
+\noindent
+{\bf F2: Direct Kernel-to-Kernel Communication. }The communication between two kernels can be done via a Fifo (i.e., OpenCL channel) on FPGAs, not via memory subsystem like GPUs. It can potentially reduce memory traffic and achieve more parallelism by concurrently executing multiple OpenCL kernels on FPGAs. 
+%OpenCL programs are originally designed for GPUs
+
+Actually, several research work~\cite{partition_fpl15, gzip_iwocl14} have already employed the above two techniques to significantly accelerate a broad range of OpenCL applications. For instance, the performance of database partitioning~\cite{partition_fpl15} is improved by 10.7 times, indicating a great potential of go-beyond kernel on FPGAs. Together with the optimization methods from conventional OpenCL kernel, a huge design space needs to be explored to determine the optimal (or near-to-optimal) optimization combination on FPGAs. 
+Unfortunately, there is no comprehensive study to guide how to optimize the OpenCL kernels on FPGAs, especially about go-beyond OpenCL kernels. Therefore, the burden of choosing the right OpenCL optimization methods still falls on the users without any rule-of-thumb guidelines. %In this paper, we try to bridge the gap between application and OpenCL execution pattern. In particular, 
+%a comprehensive study, which can  is still lacking.
+In this paper, we try to answer the following question: {\em Can we narrow the gap between conventional OpenCL programmer and performance potential of FPGAs?}
+%\vspace{-0.2em}
+%\begin{center}
+%	{\em Can we bridge the gap between conventional OpenCL programmer and high performance on FPGAs?}
+%\end{center}
+%\vspace{-0.2em}
+
+%As a start, we try to bridge the gap between OpenCL patterns and execution models.
+In this paper, we make the following contributions to narrow the gap for the conventional OpenCL programmer by connecting three common OpenCL patterns and four high-level execution models.
+
+\jgl{To me, the most significant contribution of this work can be providing some guidelines on how to transform optimized GPU OpenCL code into optimized FPGA OpenCL.} 
+
+\vspace{0.4em}
+\noindent
+{\bf C1: Three OpenCL Patterns on FPGAs (Section~\ref{sec_patterns}). }We identify three popular patterns from OpenCL kernels: atomic operation, multi-pass scheme and kernel-to-kernel communication, which are worth to be heavily revisited on FPGAs, since their performance can be significantly improved with the help of go-beyond-OpenCL features enabled by FPGAs. These patterns are well understood by the conventional OpenCL programmers such that they can easily identify the potentials of their original OpenCL program when mapping them onto FPGAs. %Besides,  can easily understand these patterns. %the architecture of FPGAs is significantly different from that of GPUs. In particular, 
+
+\vspace{0.4em}
+\noindent
+{\bf C2: Four High-level Execution Models on FPGAs (Section~\ref{sec_execution_models}). }We identify four high-level OpenCL execution models: NDRange, SWI, NDRange+Channel and SWI+Channel, which serve as main guidelines on how to optimize the OpenCL program on FPGAs. Choosing the right high-level execution model is vital for OpenCL program to achieve excellent performance on FPGAs. We also generally compare the characteristics of four execution models, which are aware of the advanced features of go-beyond OpenCL kernel. 
+
+%\vspace{0.4em}
+%\noindent
+%{\bf C3. Bridge the Gap between Patterns and Execution Models. }We identify three OpenCL patterns which show great opportunity to...
+%
+%Bridge the gap between OpenCL programmer and FPGAs. In particular, we provide a OpenCL-programmer-understandable approach 
+\vspace{0.4em}
+\noindent
+{\bf C3. Intensive Experiment to Verify Our Observation (Section~\ref{sec_experiment}). }We implement and optimize 11 OpenCL applications on a Terasic\textquoteright s DE5A-Net Arria 10 FPGA board. Actually, we try our best to implement all the execution models\footnote{For few applications, it is impossible to implement few execution models.}, each of which contains multiple optimization combinations, for each application. Based on the experimental result, we can make two observations. First, different high-level execution model leads to up to two orders of magnitude performance difference\footnote{Based on our five years' experience on OpenCL-based FPGAs, we are pretty sure that our implementation have typically reached the near-to-optimal performance for each execution model. We will make all the related source code open-sourced. }, as shown in Figure~\ref{XXX}. Second, we identify a obvious connection between three proposed OpenCL channels and four high-level execution models. %We try to show the potential of different execution models by quantitatively analyze the performance difference. 
+
+
+\vspace{1em}
+\noindent
+{\bf Future Directions and Limitation.} 
+To the best of our knowledge, this paper is the first attempt to narrow the gap between conventional OpenCL programmer and FPGAs, and we believe it opens a few exciting research directions which aim at closing the gap so that it will attract more and more people to devote to FPGA acceleration. One interesting future direction is to provide an end-to-end performance analytical model to predict the performance of each execution model. Unfortunately, only the NDRange kernel is well studied in terms of the analytical model~\cite{fpga_opencl_model_hpca16, flexcl_tc18}. 
+Another interesting future direction is to design an automatic optimization process for each execution model with the help of performance analytical model. As such, more and more people without any FPGA background can take advantage of computing power of FPGAs. 
+
+
+The limitation is that we manually try plenty of optimization combinations for each execution model. %Based on our five years' experience on OpenCL-based FPGAs, we are pretty sure that our implementation have typically reached the near-to-optimal performance for each execution model. 
+
+%Deciding the right execution pattern is rule-of-thumb to determine the performance of  
+
+
+
+
+%Third, where communication among cores is done via memory subsystem, e.g., external memory. In particular, each core writes its result to the memory subsystem and then synchronize to make sure the core can see the latest result from other cores. The underlying reason is that no communication channel exists between any two cores. This execution pattern works well on GPUs due to its powerful memory subsystem
+
+
+
+%in this paper, we explore the design space of accelerating OpenCL programs on FPGAs, especially focusing on the go-beyond OpenCL part. In particular, 
+
+%Towards a comprehensive 
+
