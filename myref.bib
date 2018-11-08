@@ -1,3 +1,14 @@
+###############FPGA optimization effort###########
+@inproceedings{best_effort_fpga_programming_arxiv18,
+	author = {Jason Cong, Zhenman Fang, Yuchen Hao, Peng Wei, Cody Hao Yu, Chen Zhang and Peipei Zhou
+	},
+	title = {	Best-Effort FPGA Programming: A Few Steps Can Go a Long Way},
+	booktitle = {Arxiv},
+	year = {2018},
+} 
+
+
+
 @ARTICLE{flexcl_tc18, 
 	author={Y. Liang and S. Wang and W. Zhang}, 
 	journal={TC}, 
@@ -71,13 +82,13 @@ year={2007},
 
 
 
-@TECHREPORT{PartitioningTech,
-	AUTHOR =       {Zeke Wang and Bingsheng He and Wei Zhang},
-	TITLE =       {{A Study of Data Partitioning on OpenCL-based FPGAs}},
-	INSTITUTION =  {Nanyang Technological University, Singapore},
-	YEAR =         {2015},
+@TECHREPORT{scan_gpu_nvidia07,
+	AUTHOR =       {Mark Harris},
+	TITLE =       {{Parallel Prefix Sum (Scan) with CUDA}},
+	INSTITUTION =  {Nvidia},
+	YEAR =         {2007},
 	number =       {},
-	address =      {http://pdcc.ntu.edu.sg/xtra/tr/2015-TR-Partitioning.pdf},
+	address =      {https://www.mimuw.edu.pl/~ps209291/kgkp/slides/scan.pdf},
 }
 
 
@@ -424,33 +435,30 @@ url = {http://www.altera.com/literature/hb/stratix-v/stx5_51001.pdf},
 @inproceedings{gomez2017chai,
   title={Chai: Collaborative Heterogeneous Applications for Integrated-architectures},
   author={G{\'o}mez-Luna, Juan and El Hajj, Izzat and Chang, Li-Wen Garcia-Flores, Victor and Garcia de Gonzalo, Simon and Jablin, Thomas and Pena, Antonio J and Hwu, Wen-mei},
-  booktitle={Performance Analysis of Systems and Software (ISPASS), 2017 IEEE International Symposium on},
+  booktitle={ISPASS},
   year={2017},
-  organization={IEEE}
+  %organization={IEEE}
 }
 
 @inproceedings{chang2017collaborative,
   title={Collaborative Computing for Heterogeneous Integrated Systems},
   author={Chang, Li-Wen and G{\'o}mez-Luna, Juan and El Hajj, Izzat and Huang, Sitao and Chen, Deming and Hwu, Wen-mei},
-  booktitle={International Conference on Performance Engineering (ICPE), 8th ACM/SPEC},
+  booktitle={ICPE},
   year={2017},
-  organization={ACM/SPEC}
+  %organization={ACM/SPEC}
 }
 
 @inproceedings{nasre2013,
  author = {Nasre, Rupesh and Burtscher, Martin and Pingali, Keshav},
  title = {Atomic-free Irregular Computations on GPUs},
- booktitle = {Proceedings of the 6th Workshop on General Purpose Processor Using Graphics Processing Units},
- series = {GPGPU-6},
+ booktitle = {GPGPU-6},
+ %series = {GPGPU-6},
  year = {2013},
- isbn = {978-1-4503-2017-7},
- location = {Houston, Texas},
- pages = {96--107},
- numpages = {12},
- url = {http://doi.acm.org/10.1145/2458523.2458533},
- doi = {10.1145/2458523.2458533},
- acmid = {2458533},
- publisher = {ACM},
- address = {New York, NY, USA},
- keywords = {GPGPU, atomic-free, graph algorithms, irregular algorithms},
 } 
+
+@INPROCEEDINGS{rodinia_iiswc09, 
+	author={S. Che, M. Boyer, J. Meng, D. Tarjan, J. W. Sheaffer, S. Lee and K. Skadron}, 
+	booktitle={IISWC}, 
+	title={Rodinia: A benchmark suite for heterogeneous computing}, 
+	year={2009}
+	}

@@ -1,4 +1,4 @@
-\documentclass[sigconf]{acmart}
+\documentclass[sigconf, 9pt]{acmart}
 
 \usepackage{booktabs} % For formal tables
 
@@ -14,7 +14,6 @@
 \usepackage [ruled,linesnumbered] {algorithm2e}  \usepackage[noend]{algorithmic}
 \usepackage{fancyvrb}
 \usepackage[noindent, nolineno]{lgrind}
-\usepackage{listings}
 \usepackage{epstopdf}
 \usepackage{array}
 \usepackage{multirow}
@@ -22,6 +21,24 @@
 \usepackage{bm}
 \usepackage{slashbox}
 
+\usepackage{xcolor}
+\usepackage{listings}
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\lstset{basicstyle=\ttfamily\footnotesize,
+        breaklines=true,
+        frame=single, 
+        language=C++,  %lauguage of code
+        otherkeywords={*, hello}, %extra keywords
+        escapeinside={\%*}{*)},        
+        morecomment=[l][\color{gray}]{//},
+        keywordstyle=\color{blue},
+        stringstyle=\color{mauve}
+        commentstyle=\color{dkgreen}, 
+        moredelim=**[is][\color{red}]{@}{@},
+%        moredelim=**[is][\color{blue}]{#}{#}
+       }
 
 \usepackage[titletoc,title]{appendix}
 
@@ -34,13 +51,13 @@
 \newcommand{\juan}[1]{{\color{dgreen}#1}}
 
 % DOI
-\acmDOI{10.475/123_4}
+\acmDOI{}%10.475/123_4}
 
 % ISBN
-\acmISBN{123-4567-24-567/08/06}
+\acmISBN{}%123-4567-24-567/08/06}
 
 %Conference
-\acmConference[DAC'19]{ACM Woodstock conference}{June 2019}{Las Vegas, NV, USA} 
+\acmConference[DAC'19]{ACM conference}{June 2019}{Las Vegas, USA} 
 \acmYear{2019}
 \copyrightyear{2019}
 
@@ -51,25 +68,26 @@
 
 \begin{document}
 	
-\title{Understanding and Optimizing OpenCL Kernels on FPGAs}
-
+%\title{Understanding and Optimizing OpenCL Kernels on FPGAs}
+%\title{Go-beyond OpenCL or Not: Deciding Performance Upper Bound of OpenCL Kernel on FPGAs}
+\title{Go-beyond OpenCL or Not: Optimizing OpenCL Kernel on FPGAs}
 
 \input{abstract.tex}
 
 \maketitle
 
-
+\vspace{-1ex}
 \input{Introduction.tex}
+\vspace{-1ex}
 \input{Preliminaries.tex}
+\vspace{-1ex}
 \input{Design.tex}
+\vspace{-1ex}
 \input{Experimental.tex}
+\vspace{-1ex}
 \input{Conclusion.tex}
-
-
-\section{Acknowledgement}
 \vspace{-1ex}
 
-We thank Intel which has donated Terasic\textquoteright s DE5A-Net Arria 10 FPGA board for our research. Testing.
 %We thank Altera and Intel for hardware donations. This work is supported by a MoE AcRF Tier 1 grant (MOE 2014-T1-001-145), an NUS startup grant and a HKUST startup grant (R9336).
 
 %This work is in part supported by MoE AcRF Tier 2 grants (MOE2012-T2-1-126 and MOE2012-T2-2-067) in Singapore.

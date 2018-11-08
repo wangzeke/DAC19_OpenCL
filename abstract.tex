@@ -1,6 +1,25 @@
 \begin{abstract}
 %Hello abstract.
-As a complementary guideline for the existing optimization efforts. But we argue this work should be considered as the first step to decide, as it decides the potential of other optimization combinations can reach. 
+For a broad range of applications, FPGA architecture allows a massive bit-level parallelism to be exploited to achieve high performance and energy efficiency. Therefore, the parallel nature of FPGA inherently matches the parallel programming language, e.g., OpenCL. For example, FPGA vendors such as Intel have released OpenCL SDK for FPGAs so that FPGA programmer can now leverage OpenCL to program FPGA, instead of tedious, time-consuming and error-prone register transfer level (RTL). %which impedes the widespread adoption of FPGAs by software programmers. 
+Accordingly, a wealth of literature have explored multiple optimization methods (e.g., loop unrolling) to accelerate conventional OpenCL (i.e., NDRange kernel) on FPGAs. 
+%Despite the preliminary success of OpenCL on FPGAs, we have still identified that . The main difference comes in two flavours: single work-item kernel and OpenCL channel, which are referred to two go-beyond OpenCL features in this paper. 
+However, conventional OpenCL cannot always represent FPGA architecture in an efficient manner, since OpenCL is originally designed for GPUs. Accordingly, Intel OpenCL SDK provides two go-beyond OpenCL features (single work-item kernel and OpenCL channel) to better utilize FPGA resources. However, how to leverage go-beyond OpenCL features is still unclear to the conventional OpenCL programmer.  
+In this paper, we reduce the problem (go-beyond OpenCL features or not) to the problem of bridging the gap between three typical OpenCL patterns and four execution models (aware of go-beyond OpenCL features). Essentially, the OpenCL programmer can easily determine whether to employ go-beyond OpenCL features, based on whether the interested OpenCL code contains any OpenCL patterns or not. Experimental result shows that, 1)choosing the suitable execution model can lead to up to three orders of magnitude performance speedup over the most unsuitable execution model; 2)we can determine the right execution model via three OpenCL patterns plus an analytical model. Therefore, we argue the execution model should be considered as the first step to decide, as it decides the potential of other optimization combinations can reach. 
+%reduce the problem explicitly .
+
+%This paper is orthogonal to the existing literature.
+%As a complementary guideline for the existing optimization efforts. But
+
+%the conventional OpenCL programmer .the existing work does not take into account go-beyond OpenCL features (i.e., ). In other words, 
+
+%The parallel programming languages, e.g., OpenCL, are based on BSP (Bulk Synchronous Parallel) model and are widely adopted by GPUs, which feature a massive number of cores for the computation task. Due to the fact that , it is a natural attempt to use the existing parallel programming languages to program FPGA. Additionally, parallel programming language delivers increased programmability and lower learning curve with respect to RTL. For instance, Intel has launched one OpenCL SDK to program FPGAs~\cite{altera_optimization}. Plenty of research work~\cite{flexcl_tc18, opencl_compiler_ERSA12, fpga_opencl_model_hpca16} are aim at optimizing the \emph{conventional OpenCL} kernels on FPGAs, where the conventional OpenCL kernel is the NDRange kernel which employs a multi-thread approach to explore the thread-level parallelism to accelerate the computing task. 
+
+%1, OpenCL on GPUs is popular, it is natural to try OpenCL on FPGAs 
+
+
+%Somewhere in the introduction, it is necessary to talk about the characteristics of the GPU OpenCL codes that are going to be ported to FPGA in this work. In Chai \cite{gomez2017chai}, there are benchmarks that use inter-kernel communication (e.g., CEDD) and multi-pass schemes (e.g., BFS, SSSP). These two are typical techniques in GPU programming. In Chai, there is also extensive use of atomic operations. In the past, GPU programmers avoided atomic operations \cite{nasre2013} because they had high overhead. However, in recent GPU generations (e.g., NVIDIA Kepler, Maxwell, Pascal) the hardware has greatly improved. They provide improved programmability that GPU programmers nowadays leverage.
+
+
 \end{abstract}
 
 

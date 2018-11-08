@@ -1,21 +1,18 @@
 \section{Conclusion}
-Hello Conclusion. 
+Despite the preliminary success of programming FPGA with OpenCL, direct adoption of OpenCL cannot fully harvest the performance potential of FPGAs, since the architecture of FPGAs is significantly different from that of GPUs, for which OpenCL is originally designed. In particular, the OpenCL programmer should be aware of two go-beyond OpenCL features to explore the performance potential of FPGAs. However, the OpenCL programmer still requires an end-to-end guideline about how to leverage these two features. In this paper, we bridge the gap between three typical OpenCL patterns and four execution models (aware of go-beyond OpenCL features). Experimental result shows that the right execution model can yield three order of magnitude performance difference. 
 
-Take-away messages:
+\noindent
+{\bf Acknowledgement. }We thank Intel which has generously donated Terasic\textquoteright s DE5A-Net Arria 10 FPGA board for our research.   
+%2, The necessary background of FPGA is required to guarantee the good performance of OpenCL kernels on FPGAs. 
+%3, for the beginner, OpenCL is much easier than RTL . 
 
-1, Direct adoption of OpenCL does not work well on FPGA. It does not take advantage of FPGA properties. 
+%Two observations are orthogonal. 
 
-2, The necessary background of FPGA is required to guarantee the good performance of OpenCL kernels on FPGAs. 
+%1, Multi-pass and atomic operations can benefit from single-work item.
 
-3, for the beginner, OpenCL is much easier than RTL . 
+%2, Multiple kernels (producer-consumer) can benefit from channel. 
 
-Two observations are orthogonal. 
-
-1, Multi-pass and atomic operations can benefit from single-work item.
-
-2, Multiple kernels (producer-consumer) can benefit from channel. 
-
-3, NDRange can explore more pipelined parallelism than single-work-item. (Using one example (MM) to show).
+%3, NDRange can explore more pipelined parallelism than single-work-item. (Using one example (MM) to show).
 
 
 
