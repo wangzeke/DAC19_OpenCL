@@ -1,6 +1,6 @@
 \section{Design Overview}
 In this section, we illustrate how the next three sections organized. 
-In Section~\ref{sec_patterns}, we identify three typical OpenCL patterns, which are well understood by the conventional OpenCL programmer with GPUs.
+In Section~\ref{sec_patterns}, we identify three typical OpenCL patterns, which are well understood by the conventional OpenCL programmer. %with GPUs.
 In Section~\ref{sec_execution_models}, we generally analyze the characteristics of four OpenCL execution models, which takes into account the go-beyond OpenCL features enabled on FPGAs.
 In Section~\ref{sec_bridge_gap}, we explicitly bridge the gap between OpenCL patterns and execution models on FPGAs. Choosing the right execution model determines the performance upper bound of the interested OpenCL application can reach. %can deliver an order of magnitude performance difference. 
 \vspace{-1ex}
@@ -43,28 +43,28 @@ for (t=0; t<size; t++) { //for loop instead of work item
 \subsection{Multi-Pass Scheme (MPS)}
 The multi-pass scheme is widely adopted to leverage a massive amount of cores in CPUs/GPUs to accelerate parallel algorithm, e.g., database operators~\cite{query_gpu_tods09, omnidb_vldb13, query_openCL_fpga_fpl16}. Besides, it can also improve the cache locality on GPUs, e.g., gather/scatter~\cite{gather_scatter_sc07}, so as to increase the overall parallelism at the cost of more memory traffic. Take the simplified parallel prefix sum~\cite{scan_gpu_nvidia07} as an example, we perform the prefix sum on the input array \emph{in} of size \emph{N} and store the output in the array \emph{out}, as illustrated in Listing~\ref{list_parallel_scan}. In Step 1, B work groups (WGs) executes concurrently, each WG performs the prefix sum (kernel \emph{prefix\_sum\_wg}) on its own part of data of starting address \emph{in[N*b/B]} and of length \emph{N/B}. Meanwhile, each WG stores its local sum to \emph{local\_sum}. In Step 2, we employ one WG to compute the prefix sum on \emph{local\_sum} and store to \emph{pre\_bsum}. In Step 3, each WG adds the scalar value \emph{pre\_bsum} to the vector and then produces the final prefix sum. 
 
+
+%Therefore, the multi-pass scheme, which heavily relies on high memory bandwidth, can still achieve better performance on GPUs than on CPUs, even though it requires multiple times more memory traffic than the original sequential counterpart which may run on a single CPU core. 
+%requires multiple passes~\cite{query_gpu_tods09} to finish the computation task, e.g., database scan. In other words,
+
+{\bf Issues on FPGAs. }We observe that the inevitable requirement for the widespread adoption of multi-pass scheme is powerful memory subsystem, as it always requires multiple times more memory traffic to realize the algorithm. It works pretty well on GPUs, whose memory bandwidth is almost an order of magnitude larger than the same-generation CPU or FPGA. For example, the memory bandwidth of Nvidia Tesla P100 GPU is able to reach 732GB/s, while Intel Skylake i9-7980XE CPU has the memory bandwidth of 85GB/s and Xilinx UltraScale+ FPGA board has 48GB/s. We can predict that the multi-pass scheme, whose success heavily relies on high memory bandwidth, would be less popular on FPGAs than on GPUs, since the memory bandwidth of FPGAs is relatively low, e.g., 18GB/s on our tested FPGA board. Therefore, it suffers from its severe performance issue, especially for the memory-bound OpenCL kernel, even though the FPGA can provide massive thread-level parallelism in terms of pipelined parallelism. 
 % illustrates the B-work-group parallelism. 
 \begin{lstlisting}[caption={MPS-based prefix sum},label={list_parallel_scan},captionpos=b]
 //Step 1: each WG computes the prefix sum on its own data
-#progama parallel in B work groups
+#pragma parallel in B work groups
 for (b = 0, b < B, b++) { 
-  local_sum[b] = prefix_sum_wg(@out@[N*b/B],@in@[N*b/B],N/B);
+local_sum[b] = prefix_sum_wg(@out@[N*b/B],@in@[N*b/B],N/B);
 }
 
 //Step 2: one WG computes the prefix sum on "local_sum"
 prefix_sum_wg(pre_bsum, local_sum, B);
 
 //Step 3: out@[b*N/B] += pre_bsum[b]
-#progama parallel in B work groups
+#pragma parallel in B work groups
 for (b = 0, b < B, b++) {
-  vec_add(@out@[b*N/B], @out@[b*N/B], pre_bsum[b], N/B);
+vec_add(@out@[b*N/B], @out@[b*N/B], pre_bsum[b], N/B);
 }
 \end{lstlisting}
-%Therefore, the multi-pass scheme, which heavily relies on high memory bandwidth, can still achieve better performance on GPUs than on CPUs, even though it requires multiple times more memory traffic than the original sequential counterpart which may run on a single CPU core. 
-%requires multiple passes~\cite{query_gpu_tods09} to finish the computation task, e.g., database scan. In other words,
-
-{\bf Issues on FPGAs. }We observe that the inevitable requirement for the widespread adoption of multi-pass scheme is powerful memory subsystem, as it always requires multiple times more memory traffic to realize the algorithm. It works pretty well on GPUs, whose memory bandwidth is almost an order of magnitude larger than the same-generation CPU or FPGA. For example, the memory bandwidth of Nvidia Tesla P100 GPU is able to reach 732GB/s, while Intel Skylake i9-7980XE CPU has the memory bandwidth of 85GB/s and Xilinx UltraScale+ FPGA board has 48GB/s. We can predict that the multi-pass scheme, whose success heavily relies on high memory bandwidth, would be less popular on FPGAs than on GPUs, since the memory bandwidth of FPGAs is relatively low, e.g., 18GB/s on our tested FPGA board. Therefore, it suffers from its severe performance issue, especially for the memory-bound OpenCL kernel, even though the FPGA can provide massive thread-level parallelism in terms of pipelined parallelism. 
-
 {\bf Potential on FPGAs. } Since Intel OpenCL SDK for FPGAs supports the new single work-item kernel, the OpenCL kernel is allowed to be implemented in a single-pass approach, as illustrated in Listing~\ref{list_swi_scan}. %, without compromising any achievable pipeline parallelism 
 Therefore, the memory traffic is reduced to a minimum level (i.e., accessing the array \emph{in/out} once, not twice) just as the single-threaded implementation running on a single CPU core. 
 %We can use single-work item execution model: multi-pass approach to approach. %It means that the memory traffic 
@@ -107,7 +107,7 @@ This communication approaches widely used in accelerating various applications, 
 \section{Four OpenCL Execution Models}
 \label{sec_execution_models}
 %Since the architecture of FPGAs is significantly different from that of GPUs, we need to revisit the OpenCL execution models on FPGAs. with the proposed aspects in mind, 
-Enabled by two go-beyond features of OpenCL on FPGAs, we identify four execution models in the context of OpenCL kernel on FPGAs. In this section, we generally analyze each execution model, in terms of programmability, computing parallelism and memory traffic. The comparison is highlighted in Table~\ref{t_comparison}.%The detailed 
+Enabled by two go-beyond features of OpenCL on FPGAs, we identify four execution models in the context of OpenCL kernel on FPGAs. In this section, we generally analyze each execution model, in terms of programmability, computing parallelism and memory traffic. The comparison result is highlighted in Table~\ref{t_comparison}.%The detailed 
 %{NDRange vs. single work-item}
 %{single-kernel vs. multiple kernels connected by OpenCL channel }
 
@@ -168,10 +168,10 @@ The SWI execution model directly employs the SWI kernel, which follows a sequent
 \subsection{NDRange + Channel}
 The NDRange + Channel execution model employs an OpenCL channel to connect two NDRange kernels such that the data communication between two kernels can be done via on-chip FIFO, rather than global memory. 
 
-{\bf Programmability. }Besides the programming difficulty from NDRange kernel, we still need to be aware of the constraint from OpenCL Channel. In particular, the producer kernel has to produce the exact data flow which the consumer kernel wants. To make things worse, work items can execute out-of-order due to the different workload of each work item, leading to unexpected data flow from NDRange kernel. We conclude that the programmability of NDRange+Channel execution model is low.
+{\bf Programmability. }Besides the programming difficulty from NDRange kernel, we still need to be aware of the constraint from OpenCL Channel. In particular, the producer kernel has to produce the exact data flow which the consumer kernel wants. To make things worse, work items can execute out-of-order due to the different workload of each work item, leading to unexpected data flow from NDRange kernel. Therefore, its programmability is low.
 
 {\bf Computing Parallelism. }
-Besides the high computing parallelism from NDRange kernel, OpenCL channel allows producer/consumer kernels to execute concurrently, leading to a massive parallelism. Therefore, we conclude that it can achieve a high computing parallelism.  
+Besides the high computing parallelism from NDRange kernel, OpenCL channel allows producer/consumer kernels to execute concurrently, leading to a high computing parallelism.  
 
 {\bf Memory Traffic. }NDRange kernel requires a high memory traffic. The OpenCL channel can potentially reduce the memory traffic to a certain extent. We conclude that the NDRange + Channel execution model requires a moderate memory traffic. 
 
@@ -211,7 +211,7 @@ Besides the high computing parallelism from NDRange kernel, OpenCL channel allow
 \subsection{SWI + Channel }
 The SWI + Channel execution model employs OpenCL channels to connect multiple SWI kernels such that multiple SWI kernels can work together to implement a parallel algorithm. The side effect of OpenCL channel is to relax the dependency of SWI kernel.  
 
-{\bf Programmability. }SWI kernel has a high programmability, since its programming model is sequential. However, the OpenCL Channel incurs some constraint to guarantee the correct design. We conclude that the programmability of SWI+Channel execution model is moderate.
+{\bf Programmability. }SWI kernel has a high programmability, since its programming model is sequential. However, the OpenCL Channel incurs some constraint to guarantee the correct design. Therefore, its programmability is moderate.
 
 {\bf Computing Parallelism. }Even though the SWI kernel can achieve low computing parallelism, OpenCL channel can significantly increase the computing parallelism allows producer/consumer kernels to execute concurrently, leading to a massive parallelism. Therefore, we conclude that it can achieve a high computing parallelism.  
 
@@ -233,30 +233,31 @@ Based on whether the targeted OpenCL application has any patterns (i.e., the fir
 \label{subsec_potential_prediction}
 In this subsection, we determine whether SWI should be evolved to SWI+Channel for higher computing parallelism, as shown in the column ``Potential evolution" of Table~\ref{t_pattern_to_model}. The evolution should satisfy two conditions. 
 
-First, there are still enough FPGA resources remaining, as SWI+Channel, which instantiates more than one SWI kernels connected by Channel, requires significantly more FPGA resources to implement. 
+\noindent
+{\bf S1: Sufficient FPGA resources. }SWI+ Channel instantiates more than one SWI kernels connected by Channel and then requires significantly more FPGA resources to implement. %First, there are still enough FPGA resources remaining, as
 
-Second, we present a simplified analytical model to predict the targeted SWI kernel is compute-bound or memory-bound. The evolution happens only when the SWI kernel is compute-bound. In particular, the computing time $T_{comp}$ is larger than memory time $T_{mem}$, as shown in Equation~\ref{E_overall_ineq}.
+\noindent
+{\bf S2: The SWI kernel is compute-bound. }The evolution happens only when the SWI kernel is compute-bound. Accordingly, we present a simplified analytical model to predict the targeted SWI kernel is compute-bound or memory-bound. In particular, the computing time $T_{comp}$ is larger than memory time $T_{mem}$  in Equation~\ref{E_overall_ineq}.
 \begin{equation} \begin{scriptsize}
 \label{E_overall_ineq}
-\vspace{-0.5ex}
+\vspace{-1ex}
 T_{comp} > T_{mem}
-\vspace{-0.5ex}
+\vspace{-1ex}
 \end{scriptsize} \end{equation}
 The computing time $T_{comp}$ is evaluated as shown in Equation~\ref{E_comp}.
 \begin{equation} \begin{scriptsize}
 \label{E_comp}
-\vspace{-0.5ex}
-T_{comp} = \frac{LTR}{II}/\#Freq, 
-\vspace{-0.5ex}
+\vspace{-1ex}
+T_{comp} = \frac{LTR*II}{\#Freq}, 
+\vspace{-1ex}
 \end{scriptsize} \end{equation}
-where the first part $LTR/II$ is the estimated number of cycles, equal to be the loop trip count $LTC$ divided by the initiation interval $II$. The second part $\#Freq$ is the frequency of the SWI kernel obtained from synthesis report. 
-   
+where $LTR*II$ is the estimated number of cycles, equal to the loop trip count $LTR$ multiplied by the initiation interval $II$. $II$ refers to the number of cycles for each loop iteration, determined at compile time. $\#Freq$ is the frequency of the SWI kernel obtained from synthesis report. 
 The memory time $T_{mem}$ is evaluated to be the number of memory traffic $MT$ divided by the memory bandwidth $\#MB$, as illustrated in Equation~\ref{E_mem}, where $\#MB$ is 18GB/s on our FPGA board.  
 \begin{equation} \begin{scriptsize}
 \label{E_mem}
-\vspace{-0.5ex}
+\vspace{-1ex}
 T_{mem} = \frac{MT}{\#MB} 
-\vspace{-0.5ex}
+\vspace{-1ex}
 \end{scriptsize} \end{equation}
 
 %Direct connection + analytical model. 

@@ -1,7 +1,7 @@
 \section{Introduction}
 
 The parallel programming languages, e.g., OpenCL, are based on BSP (Bulk Synchronous Parallel) model and are widely adopted by GPUs, which features a massive number of cores for the computation task. 
-Due to the fact that FPGA is embarrassingly parallel, it is a natural attempt to use the existing parallel programming languages to program FPGA. For instance, Intel has launched an end-to-end OpenCL SDK to program FPGAs~\cite{altera_optimization} such that the complexity from direct hardware programming (e.g., Verilog) is abstracted away. OpenCL delivers increased programmability and lower learning curve with respect to RTL. Accordingly, plenty of research work~\cite{flexcl_tc18, opencl_compiler_ERSA12, fpga_opencl_model_hpca16} are aim at optimizing the \emph{conventional OpenCL} kernels on FPGAs, where the conventional OpenCL kernel is the NDRange kernel which employs a multi-thread approach to accelerate the computing task. 
+Due to the fact that FPGA is embarrassingly parallel, it is a natural attempt to use the existing parallel programming languages to program FPGA. For instance, Intel has launched an end-to-end OpenCL SDK to program FPGAs~\cite{altera_optimization} such that the complexity from direct hardware programming (e.g., Verilog) is abstracted away. OpenCL delivers increased programmability and lower learning curve with respect to RTL. Accordingly, plenty of research work~\cite{flexcl_tc18, opencl_compiler_ERSA12, fpga_opencl_model_hpca16, opencl_hpc_sc16, comba_iccad17, auto_code_generation_dac18} are aim at optimizing the \emph{conventional OpenCL} kernels on FPGAs, where the conventional OpenCL kernel is the NDRange kernel which employs a multi-thread approach to accelerate the computing task. 
 %The optimization process is vital to achieve good performance on FPGAs, since the performance difference between proper and improper optimizations can be significant. For example, [X] shows that the optimal combination of optimization methods can provide two orders of magnitude better performance than the baseline without optimization. 
 
 %\jgl{I think an interesting motivation for this work can be achieving performance portability across different types of accelerators (i.e., GPU to FPGA). In this regard, a paper to cite is \cite{chang2017collaborative}.}
@@ -47,14 +47,14 @@ In this paper, we make the following contributions to answer the question by con
 
 \vspace{0.4em}
 \noindent
-{\bf C2: Four High-level Execution Models on FPGAs (Section~\ref{sec_execution_models}). }We identify four high-level OpenCL execution models: NDRange, SWI, NDRange+Channel and SWI+Channel, which are allowed by the OpenCL SDK for FPGAs. Choosing the right execution model actually determines the performance upper bound of the further optimization process. Figure~\ref{fig_intro_performance_difference} shows that the performance ratio of the most suitable to the most unsuitable execution models, where the best optimization combination has already been employed for each execution model. The exact execution models used by each application are not important here. We refer the interested reader to Section~\ref{sec_experiment} for more details. We can observe that the performance difference can achieve three orders of magnitude. It shows the importance of choosing the right execution model, which should serve as the first and the most important step to determine for optimizing OpenCL kernel on FPGAs. %serves as the main guidelines on how to optimize the OpenCL program on FPGAs. 
+{\bf C2: Four High-level Execution Models on FPGAs (Section~\ref{sec_execution_models}). }We identify four high-level OpenCL execution models: NDRange, SWI, NDRange+Channel and SWI+Channel, which are allowed by the OpenCL SDK for FPGAs. Choosing the right execution model actually determines the performance upper bound of the further optimization process. Figure~\ref{fig_intro_performance_difference} shows that the performance ratio of the most suitable to the most unsuitable execution models, where the best optimization combination has already been employed for each execution model. The exact execution models here are not important here. We refer the interested reader to Section~\ref{sec_experiment} for more details. We can observe that the performance difference can reach three orders of magnitude. It shows the importance of choosing the right execution model, which should serve as the first and the most important step to determine when optimizing OpenCL application on FPGAs. %serves as the main guidelines on how to optimize the OpenCL program on FPGAs. 
 %We also generally compare the characteristics of four execution models, which are aware of the advanced features of go-beyond OpenCL kernel. 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.45\textwidth]{performance_ratio.pdf}
-	\vspace{-2.0ex}
+	\vspace{-2.5ex}
 	\caption{Performance difference between the most suitable and unsuitable execution models.}% We focus on the FPGA and main memory.
-	\vspace{-2ex}
+	\vspace{-4ex}
 	\label{fig_intro_performance_difference}
 \end{figure} 
 
@@ -63,26 +63,31 @@ In this paper, we make the following contributions to answer the question by con
 %\noindent
 %{\bf C3. Bridge the Gap between Patterns and Execution Models. }We identify three OpenCL patterns which show great opportunity to...
 %
-%Bridge the gap between OpenCL programmer and FPGAs. In particular, we provide a OpenCL-programmer-understandable approach 
+
 \vspace{0.4em}
 \noindent
-{\bf C3. Intensive Experiment to Verify the Connection (Sections~\ref{sec_bridge_gap}, \ref{sec_experiment}). }We implement and optimize 11 OpenCL applications on a Terasic\textquoteright s DE5A-Net Arria 10 FPGA board. We make our best effort\footnote{Based on our five years' experience on OpenCL-based FPGAs, we are pretty sure that our implementation have typically reached the near-optimal performance for each execution model. We will make all the related source code open-sourced. } to explore optimization combinations for all the four execution models for each OpenCL application. Based on the experimental result, we can observe that the real execution model (which has the best performance) can match the predicted execution model, which is determined by three OpenCL patterns. %we can make two observations. First, different high-level execution model leads to up to three orders of magnitude performance difference. Second, we identify a obvious connection between three proposed OpenCL channels and four high-level execution models. 
+{\bf C3. Explicit Connection between Three OpenCL Patterns and Four Execution Models (Section~\ref{sec_bridge_gap}). }We bridge the gap between OpenCL patterns and execution models using the explicit connection, which can guide the conventional OpenCL programmer to optimize OpenCL application on FPGAs. 
+%We implement and optimize 11 OpenCL applications on a Terasic\textquoteright s DE5A-Net Arria 10 FPGA board. 
+Based on the experimental result (Section~\ref{sec_experiment}), we can observe that the right execution model (which yields the best performance) can match the predicted execution model (Section~\ref{sec_bridge_gap})\footnote{We will make all the related source code open-sourced. }. %We make our best effort to explore optimization combinations for all the four execution models for each OpenCL application. 
+
+%{\bf C3. Intensive Experiment to Verify the Connection (Sections~\ref{sec_bridge_gap}, \ref{sec_experiment}). }We implement and optimize 11 OpenCL applications on a Terasic\textquoteright s DE5A-Net Arria 10 FPGA board. We make our best effort\footnote{Based on our five years' experience on OpenCL-based FPGAs, we are pretty sure that our implementation have typically reached the near-optimal performance for each execution model. We will make all the related source code open-sourced. } to explore optimization combinations for all the four execution models for each OpenCL application. Based on the experimental result, we can observe that the real execution model (which has the best performance) can match the predicted execution model, which is determined by three OpenCL patterns. 
+%we can make two observations. First, different high-level execution model leads to up to three orders of magnitude performance difference. Second, we identify a obvious connection between three proposed OpenCL channels and four high-level execution models. 
 %We try to show the potential of different execution models by quantitatively analyze the performance difference. , each of which contains multiple optimization combinations,
 %\footnote{For few applications, it is impossible to implement few execution models.}
 
 \vspace{0.7em}
 %This paper is orthogonal to the existing literature.
-This paper can serve as a complementary guideline for the existing optimization efforts~\cite{flexcl_tc18, opencl_compiler_ERSA12, fpga_opencl_model_hpca16}. Besides, we argue that determining the execution model should be considered as the first step to decide, as it determines the potential of further optimization combinations can reach. 
+This paper can serve as a complementary guideline for the existing optimization efforts~\cite{flexcl_tc18, flexcl_dac17, fpga_opencl_model_hpca16}. Besides, we argue that determining the right execution model should be considered as the first step to decide, as it determines the potential of further optimization combinations can reach. 
 
-\vspace{0.5em}
-\noindent
-{\bf Future Directions. } 
-To the best of our knowledge, this paper is the first attempt to guide the conventional OpenCL programmer to leverage go-beyond OpenCL or not, and we believe it opens a few exciting research directions so that it will attract more and more people to devote to FPGA acceleration. One future direction is to provide an end-to-end performance analytical model to predict the performance of go-beyond OpenCL kernels. Until now, the literature only cover the analytical model for the NDRange kernel~\cite{fpga_opencl_model_hpca16, flexcl_tc18}. 
-Another interesting future direction is to design an automatic optimization process for each execution model with the help of performance analytical model. As such, more and more OpenCL programmer without any FPGA background can take advantage of computing power of FPGAs. 
+%\vspace{0.5em}
+%\noindent
+%{\bf Future Directions. } 
+%To the best of our knowledge, this paper is the first attempt to guide the conventional OpenCL programmer to leverage go-beyond OpenCL or not, and we believe it opens a few exciting research directions so that it will attract more and more people to devote to FPGA acceleration. One future direction is to provide an end-to-end performance analytical model to predict the performance of go-beyond OpenCL kernels. Until now, the literature only cover the analytical model for the NDRange kernel~\cite{fpga_opencl_model_hpca16, flexcl_tc18}. 
+%Another interesting future direction is to design an automatic optimization process for each execution model with the help of performance analytical model. As such, more and more OpenCL programmer without any FPGA background can take advantage of computing power of FPGAs. 
 
 \vspace{0.7em}
 \noindent
-{\bf Limitations. }This work has two limitations. First, we manually try plenty of optimization combinations for each execution model. Second, for a few applications, we cannot successfully implement all the four execution models. In particular, the result is not correct. %Based on our five years' experience on OpenCL-based FPGAs, we are pretty sure that our implementation have typically reached the near-optimal performance for each execution model. 
+{\bf Limitations. }This work has two limitations. First, we manually try plenty of optimization combinations for each execution model. Second, for a few applications, we cannot successfully implement Channel-related execution models, where the strict order the OpenCL channel requires cannot be guaranteed. % is violated. %Based on our five years' experience on OpenCL-based FPGAs, we are pretty sure that our implementation have typically reached the near-optimal performance for each execution model. 
 
 %Deciding the right execution pattern is rule-of-thumb to determine the performance of  
 
